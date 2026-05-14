@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auto Play BuzzTV</title>
+</head>
+<body>
+
+<h2>Auto Next 15 Detik</h2>
+<video id="player" controls autoplay width="400"></video>
+
+<script>
+let episode = 1;
+const video = document.getElementById("player");
+
+// Ganti sesuai API lu
+const API_URL = "https://api.buzztv.me/mobile.short/play";
+
+async function playEpisode(ep) {
+  const formData = new FormData();
+  formData.append("id", "7027"); // ID drama
+  formData.append("episode", ep);
+  formData.append("app_key", "android_v1");
+  formData.append("timestamp", Date.now());
+  formData.append("random_str", Math.random().toString(36).substring(2,10));
+  formData.append("sign_str", "495BFD2C7CA8FA45B5429998D5C1ED13"); // <- penting
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: formData,
+    headers: {
+      "token": "USNQclRtU2ZQJA49DzIHYglnBGFcbF1tVmcAfQ9xBiJSeQA6UDEHblYxW2IMMFo9CWEDZA49UWIHeA",
+      "device": "528b6cae874516ba"
+    }
+  });
+
+  const json = await res.json();
+
+  // Ambil video dari recommend / atau hardcode sementara
+  // Untuk test, kita langsung pakai m3u8 manual
+  const videoUrl = "https://btv.buzztv.me/f0602c78889e71f0bff70361c0c70102/video/aebd657f2bd441f4a2d08e0c7f575d21-9cafee84c754e014b6ab053f1015c8fe-video-sd.m3u8";
+
+  video.src = videoUrl;
+  video.play();
+
+  console.log("Playing episode:", ep);
+}
+
+async function loop() {
+  while (true) {
+    await playEpisode(episode);
+
+    await new Promise(r => setTimeout(r, 15000)); // 15 detik
+
+    episode++;
+  }
+}
+
+loop();
+</script>
+
+</body>
+</html>
