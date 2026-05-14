@@ -1,61 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Auto Play BuzzTV</title>
+  <meta charset="UTF-8">
+  <title>Auto Play Drama</title>
 </head>
 <body>
 
-<h2>Auto Next 15 Detik</h2>
-<video id="player" controls autoplay width="400"></video>
+<h2>Auto Play 15 Detik</h2>
+
+<video id="player" width="600" controls autoplay></video>
 
 <script>
-let episode = 1;
-const video = document.getElementById("player");
+let currentEp = 1;
 
-// Ganti sesuai API lu
-const API_URL = "https://api.buzztv.me/mobile.short/play";
+const TOKEN = "USNQclRtU2ZQJA49DzIHYglnBGFcbF1tVmcAfQ9xBiJSeQA6UDEHblYxW2IMMFo9CWEDZA49UWIHeA";
+const DEVICE = "528b6cae874516ba";
 
 async function playEpisode(ep) {
   const formData = new FormData();
-  formData.append("id", "7027"); // ID drama
+  formData.append("id", "7027");
   formData.append("episode", ep);
-  formData.append("app_key", "android_v1");
-  formData.append("timestamp", Date.now());
-  formData.append("random_str", Math.random().toString(36).substring(2,10));
-  formData.append("sign_str", "495BFD2C7CA8FA45B5429998D5C1ED13"); // <- penting
 
-  const res = await fetch(API_URL, {
+  // ⚠️ sementara pakai yang valid dari request lu
+  formData.append("app_key", "android_v1");
+  formData.append("timestamp", "1778786048");
+  formData.append("random_str", "6F6E2TyLH4");
+  formData.append("sign_str", "495BFD2C7CA8FA45B5429998D5C1ED13");
+
+  const res = await fetch("https://api.buzztv.me/mobile.short/play", {
     method: "POST",
     body: formData,
     headers: {
-      "token": "USNQclRtU2ZQJA49DzIHYglnBGFcbF1tVmcAfQ9xBiJSeQA6UDEHblYxW2IMMFo9CWEDZA49UWIHeA",
-      "device": "528b6cae874516ba"
+      "token": TOKEN,
+      "device": DEVICE
     }
   });
 
-  const json = await res.json();
-
-  // Ambil video dari recommend / atau hardcode sementara
-  // Untuk test, kita langsung pakai m3u8 manual
-  const videoUrl = "https://btv.buzztv.me/f0602c78889e71f0bff70361c0c70102/video/aebd657f2bd441f4a2d08e0c7f575d21-9cafee84c754e014b6ab053f1015c8fe-video-sd.m3u8";
-
-  video.src = videoUrl;
-  video.play();
-
-  console.log("Playing episode:", ep);
+  const data = await res.json();
+  return data;
 }
 
-async function loop() {
-  while (true) {
-    await playEpisode(episode);
+async function start() {
+  const player = document.getElementById("player");
 
-    await new Promise(r => setTimeout(r, 15000)); // 15 detik
+  setInterval(async () => {
+    console.log("Play episode:", currentEp);
 
-    episode++;
-  }
+    const data = await playEpisode(currentEp);
+
+    if (data?.res?.play_url) {
+      const url = data.res.play_url["720"];
+      player.src = url;
+      player.play();
+    } else {
+      console.log("Gagal ambil video");
+    }
+
+    currentEp++;
+  }, 15000);
 }
 
-loop();
+start();
 </script>
 
 </body>
